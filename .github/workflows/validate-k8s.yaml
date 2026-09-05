@@ -13,17 +13,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v4
-        with:
-          version: 'v1.31.0'
-
-      - name: Validate Kubernetes manifests (dry-run client-side)
+      - name: Install kubeconform
         run: |
-          for file in k8s/*.yaml; do
-            echo "Validating $file"
-            kubectl apply --dry-run=client -f "$file" --validate=false
-          done
+          curl -L https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xz
+          sudo mv kubeconform /usr/local/bin/
+
+      - name: Validate Kubernetes manifests (offline schema check)
+        run: |
+          kubeconform -summary -verbose k8s/*.yaml
 
       - name: Validate Docker Compose file
         run: |
