@@ -1,0 +1,30 @@
+name: Validate Kubernetes Manifests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.31.0'
+
+      - name: Validate Kubernetes manifests (dry-run client-side)
+        run: |
+          for file in k8s/*.yaml; do
+            echo "Validating $file"
+            kubectl apply --dry-run=client -f "$file" --validate=false
+          done
+
+      - name: Validate Docker Compose file
+        run: |
+          docker compose -f docker-compose.yml config
